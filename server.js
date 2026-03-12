@@ -3,22 +3,36 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+// Import your Map model so the server can use it
+const MapGraph = require('./models/Map'); 
+
 const app = express();
 app.use(cors());
-app.use(express.json()); // Allows your server to accept JSON data
+app.use(express.json());
 
-// Import your models
-const MapGraph = require('./models/Map');
-const AcademicStaff = require('./models/Staff');
-// Connect to MongoDB
+// 1. Connect to the Database
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ Connected to MongoDB successfully!'))
-  .catch((err) => console.error('❌ MongoDB connection error:', err));
+  .then(() => console.log('✅ Connected to MongoDB Atlas'))
+  .catch(err => console.error('❌ Database connection error:', err));
 
-// Basic test route
-app.get('/', (req, res) => {
-  res.send('Smart Campus Navigation API is running!');
+// ==========================================
+// 2. YOUR NEW API ROUTE
+// ==========================================
+app.get('/api/map', async (req, res) => {
+    try {
+        // Go to Atlas, find all map data, and wait for the response
+        const campusMap = await MapGraph.find(); 
+        
+        // Send the data back as JSON
+        res.status(200).json(campusMap); 
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch map data" });
+    }
 });
+// ==========================================
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// 3. Start the Server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
