@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MemoryLeak - Smart Campus Navigation</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<div id="login-view" class="view-container">
+
+<div class="login-card">
+
+<div class="logo-circle">UoM</div>
+
+<h2 class="text-blue center">Smart Campus</h2>
+
+<p class="text-muted center" style="margin-bottom:20px;">
+MemoryLeak Group Project
+</p>
+
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+
+<button id="login-btn" class="primary-btn">Log in</button>
+
+<p id="login-error" class="hidden error-text">
+Please enter a password
+</p>
+
+</div>
+</div>
+
+<div id="app-view" class="view-container hidden">
+
+<nav class="sidebar">
+
+<div class="sidebar-brand">
+<div class="brand-logo">ML</div>
+<h3>MemoryLeak</h3>
+</div>
+
+<p class="sidebar-label">Main Menu</p>
+
+<ul class="nav-links">
+
+<li class="active" data-target="tab-dashboard">
+Dashboard
+</li>
+
+<li data-target="tab-map">
+Campus Map
+</li>
+
+<li data-target="tab-directory">
+Search Directory
+</li>
+
+<li data-target="tab-staff">
+Staff Locator
+</li>
+
+</ul>
+</nav>
+
+<main class="main-content">
+
+<header class="app-header">
+
+<div class="header-text">
+<h1>Smart Campus Navigator</h1>
+<p>University of Moratuwa</p>
+</div>
+
+<button id="contrast-toggle" class="secondary-btn">
+High Contrast
+</button>
+
+</header>
+
+<section id="tab-dashboard" class="tab-content active-tab">
+
+<h2 class="section-title">Overview</h2>
+
+<div class="dashboard-grid">
+
+<div class="card">
+
+<h3>Campus Navigation</h3>
+
+<p>
+Use the map tab to explore the campus and
+find routes between buildings.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>System Status</h3>
+
+<p id="system-status">Connecting to backend...</p>
+
+</div>
+
+</div>
+</section>
+
+<section id="tab-map" class="tab-content hidden">
+
+<h2 class="section-title">Campus Graph</h2>
+
+<div class="card map-card">
+
+<div id="visual-map-placeholder">
+
+Loading campus map...
+
+</div>
+
+</div>
+
+</section>
+
+<section id="tab-directory" class="tab-content hidden">
+
+<h2 class="section-title">Search Locations</h2>
+
+<div class="card">
+
+<input
+type="text"
+id="place-search"
+placeholder="Search buildings"
+/>
+
+<ul id="search-results-list" class="directory-list"></ul>
+
+</div>
+
+</section>
+
+<section id="tab-staff" class="tab-content hidden">
+
+<h2 class="section-title">Academic Staff</h2>
+
+<div class="card">
+
+<div id="staff-list">
+
+Loading staff...
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
