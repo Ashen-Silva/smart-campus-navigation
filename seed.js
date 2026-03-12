@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
-const MapGraph = require('./src/models/Map'); // Ensure this path matches your src/ folder structure
-const AcademicStaff = require('./src/models/Staff');
-
+const MapGraph = require('./models/Map'); // Removed /src/
+const AcademicStaff = require('./models/Staff'); // Removed /src/
 const seedData = async () => {
     try {
         // 1. Connect to Atlas
