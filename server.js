@@ -31,6 +31,18 @@ app.get('/api/map', async (req, res) => {
 });
 // ==========================================
 
+// ==========================================
+// NEW: Route to fetch Academic Staff Data
+// ==========================================
+app.get('/api/staff', async (req, res) => {
+    try {
+        const staffList = await AcademicStaff.find();
+        res.status(200).json(staffList);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch staff data" });
+    }
+});
+
 // 3. Start the Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
