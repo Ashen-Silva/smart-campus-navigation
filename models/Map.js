@@ -6,7 +6,6 @@ const EdgeSchema = new mongoose.Schema({
   distance: { type: Number, required: true }, 
   isAccessible: { type: Boolean, default: false } // Filters out stairs for accessible routes [cite: 322-323, 360]
 });
-
 const MapGraphSchema = new mongoose.Schema({
   nodes: [String], 
   edges: [EdgeSchema]
