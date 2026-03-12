@@ -10,7 +10,6 @@ app.use(express.json()); // Allows your server to accept JSON data
 // Import your models
 const MapGraph = require('./models/Map');
 const AcademicStaff = require('./models/Staff');
-
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB successfully!'))
