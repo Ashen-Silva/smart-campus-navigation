@@ -6,6 +6,11 @@ require('dotenv').config();
 // Import your Map model so the server can use it
 const MapGraph = require('./models/Map'); 
 
+// Import your Academic Staff model so the server can use it
+const AcademicStaff = require('./models/Staff');
+
+//import staff routes
+const staffRoutes = require('./routes/staffRoutes');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -43,8 +48,12 @@ app.get('/api/staff', async (req, res) => {
     }
 });
 
+//staff routes
+app.use('/api/staff', staffRoutes);
+
 // 3. Start the Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    
 });
