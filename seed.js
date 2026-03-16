@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
-const MapGraph = require('./models/Map'); // Removed /src/
-const AcademicStaff = require('./models/Staff'); // Removed /src/
+const MapGraph = require('./models/Map'); 
+const AcademicStaff = require('./models/Staff'); 
+
 const seedData = async () => {
     try {
         // 1. Connect to Atlas
@@ -12,18 +13,23 @@ const seedData = async () => {
         await MapGraph.deleteMany({});
         await AcademicStaff.deleteMany({});
 
-        // 3. Define the Nodes (All circled buildings/locations)
+        // 3. Define the Nodes (Added CSE and Electrical)
         const campusNodes = [
             "University Grounds", "Steel Building", "Department of Material Science", 
             "Department of Mechanical Engineering", "James George Lecture Hall", 
             "Registrar Office", "Library", "Goda Uda Canteen", "Goda Yata Canteen", 
-            "Sumanadasa Building", "Sentra Court", "ENTC", "Faculty of Information Technology", 
+            "Sumanadasa Building", "Department of Computer Science and Engineering", "Electrical Department",
+            "Sentra Court", "ENTC", "Faculty of Information Technology", 
             "Faculty of Medicine", "Kaju Kale", "Boat Yard", "Department of Civil Engineering", 
             "Department of Textile and Clothing", "Lagaan", "Gym", "Main Canteen"
         ];
 
-        // 4. Define the Edges (Paths with estimated distances using the 50m scale)
+        // 4. Define the Edges
         const campusEdges = [
+            // Internal Sumanadasa Connections (Short distance representing stairs/hallways)
+            { fromNode: "Sumanadasa Building", toNode: "Department of Computer Science and Engineering", distance: 10, isAccessible: true },
+            { fromNode: "Sumanadasa Building", toNode: "Electrical Department", distance: 10, isAccessible: true },
+
             // Central Hub Connections
             { fromNode: "Library", toNode: "Sentra Court", distance: 110, isAccessible: true },
             { fromNode: "Library", toNode: "Registrar Office", distance: 80, isAccessible: true },
@@ -71,8 +77,8 @@ const seedData = async () => {
 
         // 6. Create Initial Staff Data for the Sumanadasa Building
         const initialStaff = [
-            { name: "Dr. Sandamal", department: "CSE", currentStatus: "InOffice", location: "Sumanadasa Building - Room 201" },
-            { name: "Dr. Ranmali", department: "Electrical", currentStatus: "InLecture", location: "Sumanadasa Building - Lecture Hall 1" }
+            { name: "Dr. Sandamal", department: "CSE", currentStatus: "InOffice", location: "Department of Computer Science and Engineering - Room 201" },
+            { name: "Dr. Ranmali", department: "Electrical", currentStatus: "InLecture", location: "Electrical Department - Lecture Hall 1" }
         ];
 
         // 7. Save to Atlas
