@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MemoryLeak - Smart Campus Navigation</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+
+
+<!-- Leaflet CSS and JS for map rendering -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+</head>
+<body>
+
+<div id="login-view" class="view-container">
+
+<div class="login-card">
+
+<div class="logo-circle">UoM</div>
+
+<h2 class="text-blue center">Smart Campus</h2>
+
+<p class="text-muted center" style="margin-bottom:20px;">
+MemoryLeak Group Project
+</p>
+
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+
+<button id="login-btn" class="primary-btn">Log in</button>
+
+<p id="login-error" class="hidden error-text">
+Please enter a password
+</p>
+
+</div>
+</div>
+
+<div id="app-view" class="view-container hidden">
+
+<nav class="sidebar">
+
+<div class="sidebar-brand">
+<div class="brand-logo">ML</div>
+<h3>MemoryLeak</h3>
+</div>
+
+<p class="sidebar-label">Main Menu</p>
+
+<ul class="nav-links">
+
+<li class="active" data-target="tab-dashboard">
+Dashboard
+</li>
+
+<li data-target="tab-map">
+Campus Map
+</li>
+
+<li data-target="tab-directory">
+Search Directory
+</li>
+
+<li data-target="tab-staff">
+Staff Locator
+</li>
+
+</ul>
+</nav>
+
+<main class="main-content">
+
+<header class="app-header">
+
+<div class="header-text">
+<h1>Smart Campus Navigator</h1>
+<p>University of Moratuwa</p>
+</div>
+
+<button id="contrast-toggle" class="secondary-btn">
+High Contrast
+</button>
+
+</header>
+
+<section id="tab-dashboard" class="tab-content active-tab">
+
+<h2 class="section-title">Overview</h2>
+
+<div class="dashboard-grid">
+
+<div class="card">
+
+<h3>Campus Navigation</h3>
+
+<p>
+Use the map tab to explore the campus and
+find routes between buildings.
+</p>
+
+</div>
+
+<div class="card">
+
+<h3>System Status</h3>
+
+<p id="system-status">Connecting to backend...</p>
+
+</div>
+
+</div>
+</section>
+
+<section id="tab-map" class="tab-content hidden">
+
+<h2 class="section-title">Campus Map</h2>
+
+<!-- ══════════════════════════════════════════
+     ROUTE PLANNER — From / To dropdowns
+     Above the map — Google Maps style
+════════════════════════════════════════════ -->
+<div id="route-planner" style="
+  background:white; border-radius:10px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.12);
+  padding:14px 16px; margin-bottom:10px;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+
+  <!-- FROM dropdown — green dot = start point -->
+  <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:180px;">
+    <div style="width:12px;height:12px;background:#1D9E75;
+                border-radius:50%;flex-shrink:0;"></div>
+    <select id="from-select" onchange="updateRoute()"
+      style="flex:1;border:1px solid #ddd;border-radius:6px;
+             padding:8px 10px;font-size:13px;outline:none;
+             background:#f9f9f9;cursor:pointer;">
+      <option value="">-- Where are you now? --</option>
+    </select>
+  </div>
+
+  <!-- Arrow between dropdowns -->
+  <div style="font-size:20px;color:#aaa;flex-shrink:0;">&#8594;</div>
+
+  <!-- TO dropdown — red dot = destination -->
+  <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:180px;">
+    <div style="width:12px;height:12px;background:#E24B4A;
+                border-radius:50%;flex-shrink:0;"></div>
+    <select id="to-select" onchange="updateRoute()"
+      style="flex:1;border:1px solid #ddd;border-radius:6px;
+             padding:8px 10px;font-size:13px;outline:none;
+             background:#f9f9f9;cursor:pointer;">
+      <option value="">-- Where do you want to go? --</option>
+    </select>
+  </div>
+
+  <!-- Clear route button -->
+  <button onclick="clearRoute()"
+    style="padding:8px 14px;background:#f0f0f0;border:1px solid #ddd;
+           border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap;">
+    &#x2715; Clear
+  </button>
+
+  <!-- Stair toggle — yellow when ON, green when OFF -->
+  <button id="stair-toggle-btn" onclick="toggleStairs()"
+    style="padding:8px 14px;background:#fff3cd;border:1px solid #ffc107;
+           border-radius:6px;font-size:12px;cursor:pointer;
+           color:#856404;font-weight:bold;white-space:nowrap;">
+    &#9654; Stairs: ON
+  </button>
+
+</div>
+
+<!-- Path legend — explains line colours -->
+<div style="display:flex;gap:16px;margin-bottom:8px;
+            font-size:12px;color:#555;flex-wrap:wrap;align-items:center;">
+  <span>
+    <span style="display:inline-block;width:24px;height:3px;
+                 background:#1D9E75;vertical-align:middle;margin-right:4px;"></span>
+    Stair-free path
+  </span>
+  <span>
+    <span style="display:inline-block;width:24px;height:0;
+                 border-top:3px dashed #FF8C00;vertical-align:middle;margin-right:4px;"></span>
+    Stairs path
+  </span>
+  <span>
+    <span style="display:inline-block;width:24px;height:3px;
+                 background:#185FA5;vertical-align:middle;margin-right:4px;"></span>
+    Your route
+  </span>
+</div>
+
+<!-- Route info bar — shows after route is found -->
+<div id="route-info" style="
+  display:none; background:#e6f0ff; border-radius:8px;
+  padding:10px 14px; margin-bottom:10px;
+  font-size:13px; color:#0044cc; line-height:1.7;">
+</div>
+
+<!-- Map wrapper — relative so search bar floats over it -->
+<div style="position:relative;">
+
+  <!-- Quick search bar floating over the map -->
+  <div id="map-search-container" style="
+    position:absolute; top:12px; left:50%;
+    transform:translateX(-50%); width:300px; z-index:1000;">
+
+    <div style="display:flex;align-items:center;background:white;
+      border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.25);
+      padding:7px 12px;gap:8px;">
+
+      <!-- Search icon -->
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+           stroke="#666" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+
+      <!-- Quick zoom search input -->
+      <input type="text" id="map-search-input"
+             placeholder="Quick search building..."
+             autocomplete="off"
+             style="border:none;outline:none;font-size:13px;
+                    width:100%;color:#333;background:transparent;"/>
+
+      <!-- Clear X button -->
+      <span id="map-search-clear" onclick="clearMapSearch()"
+            style="cursor:pointer;color:#999;font-size:15px;
+                   display:none;line-height:1;">&#x2715;</span>
+
+      <!-- Locate me button -->
+      <svg onclick="locateMe()" width="15" height="15" viewBox="0 0 24 24"
+           fill="none" stroke="#0044cc" stroke-width="2"
+           stroke-linecap="round" style="cursor:pointer;flex-shrink:0;"
+           title="Show my location">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+        <circle cx="12" cy="12" r="8" stroke-dasharray="4 2"/>
+      </svg>
+    </div>
+
+    <!-- Suggestions dropdown -->
+    <ul id="map-search-suggestions" style="
+      list-style:none;margin:4px 0 0 0;padding:0;
+      background:white;border-radius:8px;
+      box-shadow:0 4px 16px rgba(0,0,0,0.15);
+      display:none;max-height:200px;overflow-y:auto;"></ul>
+  </div>
+
+  <!-- Leaflet map renders inside this div -->
+  <div class="card map-card" style="padding:0;overflow:hidden;">
+    <div id="visual-map-placeholder" style="height:500px;width:100%;"></div>
+  </div>
+
+</div>
+
+<!-- Styles for search suggestions and dropdowns -->
+<style>
+  #map-search-suggestions li {
+    padding:10px 16px; font-size:13px; cursor:pointer;
+    color:#333; display:flex; align-items:center;
+    gap:10px; border-bottom:1px solid #f0f0f0;
+  }
+  #map-search-suggestions li:last-child { border-bottom:none; }
+  #map-search-suggestions li:hover { background:#f0f4ff; }
+  .suggestion-dist {
+    margin-left:auto; font-size:11px; color:#0044cc;
+    background:#e6f0ff; padding:2px 7px;
+    border-radius:10px; white-space:nowrap;
+  }
+  #from-select:focus, #to-select:focus {
+    border-color:#0044cc; background:white;
+  }
+</style>
+
+</section>
+
+<section id="tab-directory" class="tab-content hidden">
+
+<h2 class="section-title">Search Locations</h2>
+
+<div class="card">
+
+<input
+type="text"
+id="place-search"
+placeholder="Search buildings"
+/>
+
+<ul id="search-results-list" class="directory-list"></ul>
+
+</div>
+
+</section>
+
+<section id="tab-staff" class="tab-content hidden">
+
+<h2 class="section-title">Academic Staff</h2>
+
+<div class="card">
+
+<div id="staff-list">
+
+Loading staff...
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+</div>
+
+<!-- Load each class file — ORDER MATTERS -->
+<!-- CampusNode and CampusEdge first — CampusGraph depends on them -->
+<script src="js/CampusNode.js"></script>
+<script src="js/CampusEdge.js"></script>
+<!-- CampusGraph depends on CampusNode and CampusEdge -->
+<script src="js/CampusGraph.js"></script>
+<!-- MapManager depends on CampusGraph -->
+<script src="js/MapManager.js"></script>
+<!-- MapSearch depends on MapManager -->
+<script src="js/MapSearch.js"></script>
+<!-- These three are independent -->
+<script src="js/LoginManager.js"></script>
+<script src="js/UIManager.js"></script>
+<script src="js/DirectoryManager.js"></script>
+<script src="js/StaffLocatorBoard.js"></script>
+
+<!-- app.js last — boots everything after all classes are loaded -->
+<script src="app.js"></script>
+
+</body>
+</html>
