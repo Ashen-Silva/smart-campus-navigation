@@ -2,7 +2,6 @@
 // CampusGraph.js
 // Holds all campus nodes and edges
 // Runs Dijkstra shortest path algorithm
-// Depends on: CampusNode.js, CampusEdge.js
 // ============================================================
 
 class CampusGraph {
@@ -21,11 +20,18 @@ class CampusGraph {
     // Also adds the reverse edge — paths are walkable both ways
     addEdge(edge) {
         this.edges.push(edge);
+        
+        let reverseCoords = null;
+        if (edge.coords) {
+            reverseCoords = [...edge.coords].reverse();
+        }
+
         this.edges.push(new CampusEdge(
             edge.to,
             edge.from,
             edge.distance,
-            edge.isAccessible
+            edge.isAccessible,
+            reverseCoords
         ));
     }
 
