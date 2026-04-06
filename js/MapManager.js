@@ -5,7 +5,6 @@
 //   1. White/blank area outside UoM campus boundary
 //   2. From / To dropdowns populate from building list
 //   3. Stair toggle — show or hide stair edges on map
-// Depends on: CampusNode.js, CampusEdge.js, CampusGraph.js
 // ============================================================
 
 class MapManager {
@@ -26,70 +25,43 @@ class MapManager {
         this._populateDropdowns(); // fill From / To selects with building names
     }
 
+    _calcDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371e3; // metres
+        const φ1 = lat1 * Math.PI/180;
+        const φ2 = lat2 * Math.PI/180;
+        const Δφ = (lat2-lat1) * Math.PI/180;
+        const Δλ = (lon2-lon1) * Math.PI/180;
+        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return Math.floor(R * c);
+    }
+
     // ── Build graph with all UoM campus buildings and paths ──
     _buildGraph() {
+        if (!window.campusPlaces || !window.campusPaths) {
+            console.error("Campus maps data missing");
+            return;
+        }
 
-        // All 21 UoM campus buildings with real GPS coordinates
-        const buildings = [
-            { id: 0,  name: "University Grounds",                lat: 6.798289, lng: 79.899509 },
-            { id: 1,  name: "Steel Building",                    lat: 6.797302, lng: 79.898760 },
-            { id: 2,  name: "Dept. of Material Science",         lat: 6.796462, lng: 79.899675 },
-            { id: 3,  name: "Dept. of Mechanical Engineering",   lat: 6.796543, lng: 79.899039 },
-            { id: 4,  name: "James George Lecture Hall",         lat: 6.795964, lng: 79.900045 },
-            { id: 5,  name: "Registrar Office",                  lat: 6.795360, lng: 79.900539 },
-            { id: 6,  name: "Library",                           lat: 6.795375, lng: 79.901022 },
-            { id: 7,  name: "Goda Uda Canteen",                  lat: 6.796316, lng: 79.900088 },
-            { id: 8,  name: "Goda Yata Canteen",                 lat: 6.796316, lng: 79.900088 },
-            { id: 9,  name: "Sumanadasa Building",               lat: 6.796877, lng: 79.900609 },
-            { id: 10, name: "Sentra Court",                      lat: 6.796297, lng: 79.900606 },
-            { id: 11, name: "ENTC",                              lat: 6.796518, lng: 79.901311 },
-            { id: 12, name: "Faculty of Information Technology", lat: 6.796997, lng: 79.901893 },
-            { id: 13, name: "Faculty of Medicine",               lat: 6.796734, lng: 79.902534 },
-            { id: 14, name: "Kaju Kale",                         lat: 6.797829, lng: 79.903733 },
-            { id: 15, name: "Boat Yard",                         lat: 6.798159, lng: 79.903819 },
-            { id: 16, name: "Dept. of Civil Engineering",        lat: 6.798462, lng: 79.902897 },
-            { id: 17, name: "Dept. of Textile and Clothing",     lat: 6.798148, lng: 79.901327 },
-            { id: 18, name: "Lagaan",                            lat: 6.797943, lng: 79.900716 },
-            { id: 19, name: "Gym",                               lat: 6.797618, lng: 79.900558 },
-            { id: 20, name: "Main Canteen",                      lat: 6.795500, lng: 79.903000 },
-        ];
-
-        // Add every building as a CampusNode
-        buildings.forEach(b => {
-            this.graph.addNode(new CampusNode(b.id, b.name, b.lat, b.lng));
+        // Add nodes
+        window.campusPlaces.forEach(p => {
+            this.graph.addNode(new CampusNode(p.id.toString(), p.name, p.lat, p.lng));
         });
 
-        // All paths — [fromId, toId, distanceMetres, isAccessible]
-        const edges = [
-            [6,  10, 110, true ],  // Library ↔ Sentra Court
-            [6,  5,  80,  true ],  // Library ↔ Registrar Office
-            [10, 9,  60,  true ],  // Sentra Court ↔ Sumanadasa
-            [10, 11, 70,  true ],  // Sentra Court ↔ ENTC
-            [9,  2,  90,  true ],  // Sumanadasa ↔ Material Science
-            [2,  3,  75,  true ],  // Material Science ↔ Mechanical Eng
-            [3,  4,  60,  true ],  // Mechanical Eng ↔ James George Hall
-            [4,  5,  70,  true ],  // James George Hall ↔ Registrar
-            [9,  1,  120, true ],  // Sumanadasa ↔ Steel Building
-            [3,  7,  80,  true ],  // Mechanical Eng ↔ Goda Uda Canteen
-            [7,  8,  10,  false],  // Goda Uda ↔ Goda Yata — STAIRS (inaccessible)
-            [1,  0,  130, true ],  // Steel Building ↔ University Grounds
-            [0,  18, 110, true ],  // University Grounds ↔ Lagaan
-            [18, 19, 50,  true ],  // Lagaan ↔ Gym
-            [19, 9,  85,  true ],  // Gym ↔ Sumanadasa
-            [19, 17, 80,  true ],  // Gym ↔ Textile and Clothing
-            [17, 16, 100, true ],  // Textile ↔ Civil Engineering
-            [16, 15, 90,  true ],  // Civil Engineering ↔ Boat Yard
-            [16, 12, 140, true ],  // Civil Engineering ↔ FIT
-            [12, 20, 70,  true ],  // FIT ↔ Main Canteen
-            [20, 9,  100, true ],  // Main Canteen ↔ Sumanadasa
-            [12, 11, 65,  true ],  // FIT ↔ ENTC
-            [12, 13, 120, true ],  // FIT ↔ Faculty of Medicine
-            [13, 14, 160, true ],  // Faculty of Medicine ↔ Kaju Kale
-            [14, 6,  250, true ],  // Kaju Kale ↔ Library
-        ];
-
-        edges.forEach(([f, t, d, a]) => {
-            this.graph.addEdge(new CampusEdge(f, t, d, a));
+        // Add edges
+        window.campusPaths.forEach(path => {
+            const fromId = path[0].toString();
+            const toId = path[1].toString();
+            
+            const nodeA = this.graph.nodes.get(fromId);
+            const nodeB = this.graph.nodes.get(toId);
+            
+            if (nodeA && nodeB) {
+                const dist = this._calcDistance(nodeA.lat, nodeA.lng, nodeB.lat, nodeB.lng);
+                this.graph.addEdge(new CampusEdge(fromId, toId, dist, true, null));
+            }
         });
     }
 
@@ -140,7 +112,6 @@ class MapManager {
         document.getElementById("system-status").innerText = "Map loaded — UoM Campus";
     }
 
-    // ── Draw all campus paths as lines ──
     _drawAllEdges() {
         this.stairLines = []; // reset stair line references
 
@@ -152,21 +123,27 @@ class MapManager {
             const nodeA = this.graph.nodes.get(edge.from);
             const nodeB = this.graph.nodes.get(edge.to);
 
+            const isRoadEdge = edge.from.toString().startsWith("road_node_") || edge.to.toString().startsWith("road_node_");
+            const latlngs = edge.coords || [[nodeA.lat, nodeA.lng], [nodeB.lat, nodeB.lng]];
+
             const line = L.polyline(
-                [[nodeA.lat, nodeA.lng], [nodeB.lat, nodeB.lng]],
+                latlngs,
                 {
                     // Stair-free = green, stairs = orange dashed
                     color:     edge.isAccessible ? "#1D9E75" : "#FF8C00",
-                    weight:    2,
+                    weight:    isRoadEdge ? 1 : 2,
                     dashArray: edge.isAccessible ? null : "6 4",
-                    opacity:   0.7
+                    opacity:   isRoadEdge ? 0.3 : 0.7
                 }
-            ).addTo(this.map)
-             .bindTooltip(
-                `${nodeA.label} ↔ ${nodeB.label} — ${edge.distance}m` +
-                (!edge.isAccessible ? " ⚠ Stairs" : " ✓ Stair-free"),
-                { sticky: true }
-             );
+            ).addTo(this.map);
+
+            if (!isRoadEdge) {
+                line.bindTooltip(
+                    `${nodeA.label} ↔ ${nodeB.label} — ${edge.distance}m` +
+                    (!edge.isAccessible ? " ⚠ Stairs" : " ✓ Stair-free"),
+                    { sticky: true }
+                );
+            }
 
             // Save stair lines separately so we can show/hide them
             if (!edge.isAccessible) {
@@ -180,7 +157,7 @@ class MapManager {
         this._drawAllEdges();
 
         // Custom small blue circle icon
-        const blueIcon = L.divIcon({
+        this.blueIcon = L.divIcon({
             className: "",
             html: `<div style="
                 width:14px; height:14px; background:#185FA5;
@@ -191,8 +168,34 @@ class MapManager {
             iconAnchor: [7, 7]
         });
 
+        // Green start icon
+        this.greenIcon = L.divIcon({
+            className: "",
+            html: `<div style="
+                width:18px; height:18px; background:#1D9E75;
+                border:2px solid #fff; border-radius:50%;
+                box-shadow:0 1px 4px rgba(0,0,0,0.3);">
+            </div>`,
+            iconSize:   [18, 18],
+            iconAnchor: [9, 9]
+        });
+
+        // Red destination icon
+        this.redIcon = L.divIcon({
+            className: "",
+            html: `<div style="
+                width:18px; height:18px; background:#E24B4A;
+                border:2px solid #fff; border-radius:50%;
+                box-shadow:0 1px 4px rgba(0,0,0,0.3);">
+            </div>`,
+            iconSize:   [18, 18],
+            iconAnchor: [9, 9]
+        });
+
         this.graph.nodes.forEach(node => {
-            const marker = L.marker([node.lat, node.lng], { icon: blueIcon })
+            if (node.id.toString().startsWith("road_node_")) return;
+
+            const marker = L.marker([node.lat, node.lng], { icon: this.blueIcon })
                 .addTo(this.map)
                 .bindPopup(this._buildPopup(node));
             node.marker = marker;
@@ -243,6 +246,7 @@ class MapManager {
 
         // Add one option per building, sorted by name
         const sorted = [...this.graph.nodes.values()]
+            .filter(node => !node.id.toString().startsWith("road_node_") && node.label)
             .sort((a, b) => a.label.localeCompare(b.label));
 
         sorted.forEach(node => {
@@ -260,14 +264,18 @@ class MapManager {
         });
     }
 
-    // ── Called by updateRoute() when both dropdowns have a value ──
     findRouteFromDropdowns(fromId, toId) {
-        const start  = this.graph.nodes.get(Number(fromId));
-        const end    = this.graph.nodes.get(Number(toId));
+        const start  = this.graph.nodes.get(fromId.toString());
+        const end    = this.graph.nodes.get(toId.toString());
         if (!start || !end || start.id === end.id) return;
 
         // Run Dijkstra
         const result = this.graph.dijkstra(start.id, end.id, this.accessibleMode);
+
+        // Reset all nodes to blue before highlighting new selection
+        this.graph.nodes.forEach(node => {
+            if (node.marker) node.marker.setIcon(this.blueIcon);
+        });
 
         // Remove old route line
         if (this.pathLine) {
@@ -288,11 +296,32 @@ class MapManager {
             return;
         }
 
+        // Highlight start and end markers
+        start.marker.setIcon(this.greenIcon);
+        end.marker.setIcon(this.redIcon);
+
         // Draw route polyline
-        const latlngs = result.path.map(id => {
-            const n = this.graph.nodes.get(id);
-            return [n.lat, n.lng];
-        });
+        const latlngs = [];
+        for (let i = 0; i < result.path.length - 1; i++) {
+            const currentId = result.path[i];
+            const nextId = result.path[i+1];
+            
+            let validEdges = this.graph.edges.filter(e => e.from === currentId && e.to === nextId);
+            if (this.accessibleMode) {
+                validEdges = validEdges.filter(e => e.isAccessible);
+            }
+            const edge = validEdges[0];
+
+            if (edge && edge.coords) {
+                if (i === 0) latlngs.push(...edge.coords);
+                else latlngs.push(...edge.coords.slice(1));
+            } else {
+                const n1 = this.graph.nodes.get(currentId);
+                const n2 = this.graph.nodes.get(nextId);
+                if (i === 0) latlngs.push([n1.lat, n1.lng]);
+                latlngs.push([n2.lat, n2.lng]);
+            }
+        }
 
         this.pathLine = L.polyline(latlngs, {
             color:   this.accessibleMode ? "#1D9E75" : "#185FA5",
@@ -303,7 +332,10 @@ class MapManager {
         this.map.fitBounds(this.pathLine.getBounds(), { padding: [40, 40] });
 
         // Build step list
-        const names = result.path.map(id => this.graph.nodes.get(id).label);
+        const names = result.path
+            .map(id => this.graph.nodes.get(id).label)
+            .filter(label => label && label.trim() !== "");
+            
         const steps = names.map((n, i) =>
             `<span style="color:#888;">${i + 1}.</span> ${n}`
         ).join(" &rarr; ");
@@ -319,10 +351,11 @@ class MapManager {
 
     // ── Called when user clicks "Select as waypoint" in popup ──
     selectNode(nodeId) {
-        const node = this.graph.nodes.get(nodeId);
+        const node = this.graph.nodes.get(nodeId.toString());
 
         if (this.selectedNodes.length === 0) {
             this.selectedNodes.push(node);
+            node.marker.setIcon(this.greenIcon);
             node.marker.closePopup();
             node.marker.bindPopup(
                 `<b style="color:#EF9F27;">START: ${node.label}</b>
@@ -357,10 +390,30 @@ class MapManager {
             return;
         }
 
-        const latlngs = result.path.map(id => {
-            const n = this.graph.nodes.get(id);
-            return [n.lat, n.lng];
-        });
+        // Highlight destination marker
+        end.marker.setIcon(this.redIcon);
+
+        const latlngs = [];
+        for (let i = 0; i < result.path.length - 1; i++) {
+            const currentId = result.path[i];
+            const nextId = result.path[i+1];
+            
+            let validEdges = this.graph.edges.filter(e => e.from === currentId && e.to === nextId);
+            if (this.accessibleMode) {
+                validEdges = validEdges.filter(e => e.isAccessible);
+            }
+            const edge = validEdges[0];
+
+            if (edge && edge.coords) {
+                if (i === 0) latlngs.push(...edge.coords);
+                else latlngs.push(...edge.coords.slice(1));
+            } else {
+                const n1 = this.graph.nodes.get(currentId);
+                const n2 = this.graph.nodes.get(nextId);
+                if (i === 0) latlngs.push([n1.lat, n1.lng]);
+                latlngs.push([n2.lat, n2.lng]);
+            }
+        }
 
         this.pathLine = L.polyline(latlngs, {
             color:   this.accessibleMode ? "#1D9E75" : "#185FA5",
@@ -370,7 +423,10 @@ class MapManager {
 
         this.map.fitBounds(this.pathLine.getBounds(), { padding: [40, 40] });
 
-        const names      = result.path.map(id => this.graph.nodes.get(id).label);
+        const names = result.path
+            .map(id => this.graph.nodes.get(id).label)
+            .filter(label => label && label.trim() !== "");
+
         const routeSteps = names.map((n, i) =>
             `<span style="color:#888;">${i + 1}.</span> ${n}`
         ).join("<br>");
@@ -439,10 +495,13 @@ class MapManager {
         if (fromSelect) fromSelect.value = "";
         if (toSelect)   toSelect.value   = "";
 
-        // Restore all markers to default popup
+        // Restore all markers to default popup and color
         this.graph.nodes.forEach(node => {
-            node.marker.closePopup();
-            node.marker.bindPopup(this._buildPopup(node));
+            if (node.marker) {
+                node.marker.setIcon(this.blueIcon);
+                node.marker.closePopup();
+                node.marker.bindPopup(this._buildPopup(node));
+            }
         });
     }
 }
