@@ -4,29 +4,27 @@ const MapGraph = require('./models/Map');
 const AcademicStaff = require('./models/Staff'); 
 const User = require('./models/User');
 
-await MapGraph.deleteMany({});
-await AcademicStaff.deleteMany({});
-await User.deleteMany({}); // <--- Clear old users to avoid "unique" errors
-console.log("Database cleared.");
-
-// 3. Create a test user
-const testUser = new User({
-    username: "dinol", // Use this to log in
-    password: "password123" // In production, we would hash this!
-});
-
-await testUser.save();
-console.log("👤 Test user 'dinol' created.");
-
 const seedData = async () => {
     try {
         // 1. Connect to Atlas
         await mongoose.connect(process.env.MONGO_URI);
         console.log("Connected to Atlas for seeding the UOM Map...");
 
-        // 2. Clear existing database to prevent duplicates
+        // Clear existing collections
         await MapGraph.deleteMany({});
         await AcademicStaff.deleteMany({});
+        await User.deleteMany({}); // <--- Clear old users to avoid "unique" errors
+        console.log("Database cleared.");
+
+        // 3. Create a test user
+        const testUser = new User({
+            username: "dinol", // Use this to log in
+            password: "password123", // In production, we would hash this!
+            role: "user"
+        });
+
+        await testUser.save();
+        console.log("👤 Test user 'dinol' created.");
 
         // 3. Define the Nodes (Added CSE and Electrical)
         const campusNodes = [
