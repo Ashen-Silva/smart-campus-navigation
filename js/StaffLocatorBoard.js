@@ -7,8 +7,19 @@ class StaffLocatorBoard {
 
     async fetchRealData() {
         try {
-            // 2. Fetch live data from the backend route we just fixed
-            const response = await fetch('http://localhost:5000/api/staff');
+            // Fetch live data from the backend route we just fixed
+            const token = localStorage.getItem('token');
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            const response = await fetch('http://localhost:3000/api/staff', { headers });
+            
+            if (!response.ok) {
+                throw new Error("Failed to fetch staff data");
+            }
+            
             this.staffData = await response.json();
             
             // 3. Render the board with the live data

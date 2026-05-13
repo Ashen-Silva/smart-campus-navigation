@@ -31,9 +31,10 @@ MemoryLeak Group Project
 <input type="password" id="password" placeholder="Password">
 
 <button id="login-btn" class="primary-btn">Log in</button>
+<button id="guest-btn" class="secondary-btn" style="margin-top: 10px; width: 100%;">Continue as Guest</button>
 
 <p id="login-error" class="hidden error-text">
-Please enter a password
+Invalid username or password
 </p>
 
 </div>
@@ -52,19 +53,19 @@ Please enter a password
 
 <ul class="nav-links">
 
-<li class="active" data-target="tab-dashboard">
+<li id="nav-dashboard" class="active" data-target="tab-dashboard">
 Dashboard
 </li>
 
-<li data-target="tab-map">
+<li id="nav-map" data-target="tab-map">
 Campus Map
 </li>
 
-<li data-target="tab-directory">
+<li id="nav-directory" data-target="tab-directory">
 Search Directory
 </li>
 
-<li data-target="tab-staff">
+<li id="nav-staff" data-target="tab-staff">
 Staff Locator
 </li>
 

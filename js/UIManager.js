@@ -14,6 +14,27 @@ class UIManager {
         this.tabContents  = document.querySelectorAll('.tab-content');
 
         this.setupEvents();
+        
+        window.addEventListener('appReady', () => this.applyRoleRestrictions());
+    }
+
+    applyRoleRestrictions() {
+        if (window.currentUserRole === 'guest') {
+            const navDashboard = document.getElementById('nav-dashboard');
+            const navStaff = document.getElementById('nav-staff');
+            if (navDashboard) navDashboard.style.display = 'none';
+            if (navStaff) navStaff.style.display = 'none';
+            
+            const mapNav = document.getElementById('nav-map');
+            if (mapNav) mapNav.click();
+        } else {
+            const navDashboard = document.getElementById('nav-dashboard');
+            const navStaff = document.getElementById('nav-staff');
+            if (navDashboard) navDashboard.style.display = '';
+            if (navStaff) navStaff.style.display = '';
+            
+            if (navDashboard) navDashboard.click();
+        }
     }
 
     // ── Attach all event listeners ──

@@ -2,6 +2,9 @@ const User = require('./models/user');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const authMiddleware = require('./middleware/auth');
+
 require('dotenv').config();
 
 // Import your Map model so the server can use it
@@ -39,8 +42,8 @@ app.get('/api/map', async (req, res) => {
 
 
 
-//staff routes
-app.use('/api/staff', staffRoutes);
+//staff routes (Protected)
+app.use('/api/staff', authMiddleware, staffRoutes);
 
 // 3. Start the Server
 const PORT = process.env.PORT || 3000;
@@ -64,10 +67,18 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ message: "Invalid username or password" });
         }
 
-        // 3. Success!
+        // 3. Generate JWT Token
+        const token = jwt.sign(
+            { id: user._id, role: user.role, username: user.username },
+            process.env.JWT_SECRET || 'super_secret_key',
+            { expiresIn: '1h' }
+        );
+
+        // 4. Success!
         res.status(200).json({ 
             message: "Login successful", 
-            token: "success-token-123" 
+            token: token,
+            role: user.role
         });
 
     } catch (error) {
