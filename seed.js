@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const MapGraph = require('./models/Map'); 
 const AcademicStaff = require('./models/Staff'); 
-const User = require('./models/user');
+const User = require('./models/User');
 
 await MapGraph.deleteMany({});
 await AcademicStaff.deleteMany({});
@@ -93,7 +93,8 @@ const seedData = async () => {
         // 6. Create Initial Staff Data for the Sumanadasa Building
         const initialStaff = [
             { name: "Dr. Sandamal", department: "CSE", currentStatus: "InOffice", location: "Department of Computer Science and Engineering - Room 201" },
-            { name: "Dr. Ranmali", department: "Electrical", currentStatus: "InLecture", location: "Electrical Department - Lecture Hall 1" }
+            { name: "Dr. Ranmali", department: "Electrical", currentStatus: "InLecture", location: "Electrical Department - Lecture Hall 1" },
+            { name: "Dr. Ashen Silva", department: "CSE", currentStatus: "InLecture", location: "Department of Computer Science and Engineering Hall 1" }
         ];
 
         // 7. Save to Atlas
