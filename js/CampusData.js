@@ -21,6 +21,10 @@ window.campusPlaces = [
   { id: "18", name: "Lagaan", aliases: [], lat: 6.7980386, lng: 79.9007837, info: "" },
   { id: "19", name: "Gym", aliases: [], lat: 6.7976228, lng: 79.9005989, info: "" },
   { id: "20", name: "Main Canteen", aliases: [], lat: 6.7963264, lng: 79.900437, info: "" },
+  { id: "21", name: "Main Gate",   aliases: [], lat: 6.794981, lng: 79.900775, info: "" },
+  { id: "22", name: "Main Gate 2", aliases: [], lat: 6.795359, lng: 79.899852, info: "" },
+  { id: "23", name: "Back Gate",   aliases: [], lat: 6.798502, lng: 79.901124, info: "" },
+
   { id: "road_node_0", name: "", aliases: [], lat: 6.7982477, lng: 79.9032319, info: "" },
   { id: "road_node_1", name: "", aliases: [], lat: 6.7986177, lng: 79.9032018, info: "" },
   { id: "road_node_2", name: "", aliases: [], lat: 6.7988307, lng: 79.903181, info: "" },
@@ -916,6 +920,19 @@ window.campusPaths = [
   [
     "20",
     "road_node_152"
+  ],
+  [
+    "21", 
+    "road_node_139"
+  ],
+  [
+    "22", 
+    "road_node_145"
+  ],
+  [
+    "23", 
+    "road_node_46"
   ]
+
 ];
 
