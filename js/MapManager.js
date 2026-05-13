@@ -27,13 +27,16 @@ class MapManager {
 
     _calcDistance(lat1, lon1, lat2, lon2) {
         const R = 6371e3; // metres
-        const φ1 = lat1 * Math.PI/180;
-        const φ2 = lat2 * Math.PI/180;
-        const Δφ = (lat2-lat1) * Math.PI/180;
-        const Δλ = (lon2-lon1) * Math.PI/180;
-        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                Math.cos(φ1) * Math.cos(φ2) *
-                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+        
+        // TA FIX: Replaced Greek letters (φ, Δ) with standard English variable names
+        const lat1Rad = lat1 * Math.PI/180;
+        const lat2Rad = lat2 * Math.PI/180;
+        const deltaLat = (lat2-lat1) * Math.PI/180;
+        const deltaLon = (lon2-lon1) * Math.PI/180;
+        
+        const a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                Math.sin(deltaLon/2) * Math.sin(deltaLon/2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return Math.floor(R * c);
     }
@@ -192,10 +195,35 @@ class MapManager {
             iconAnchor: [9, 9]
         });
 
+        // Gate icon — orange diamond shape
+        this.gateIcon = L.divIcon({
+            className: "",
+            html: `<div style="
+                width: 0; height: 0;
+                border-left: 9px solid transparent;
+                border-right: 9px solid transparent;
+                border-bottom: 16px solid #e8430c;
+                filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+                position: relative;">
+                <div style="
+                    width: 0; height: 0;
+                    border-left: 7px solid transparent;
+                    border-right: 7px solid transparent;
+                    border-bottom: 12px solid #811e59;
+                    position: absolute; top: 4px; left: -7px;">
+                </div>
+            </div>`,
+            iconSize:   [18, 16],
+            iconAnchor: [9, 8]
+        });
+
+        const gateIds = ["21", "22", "23"];
+
         this.graph.nodes.forEach(node => {
             if (node.id.toString().startsWith("road_node_")) return;
 
-            const marker = L.marker([node.lat, node.lng], { icon: this.blueIcon })
+            const icon = gateIds.includes(node.id) ? this.gateIcon : this.blueIcon;
+            const marker = L.marker([node.lat, node.lng], { icon })
                 .addTo(this.map)
                 .bindPopup(this._buildPopup(node));
             node.marker = marker;
