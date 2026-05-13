@@ -55,15 +55,30 @@ app.listen(PORT, () => {
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+        console.log(`[LOGIN ATTEMPT] Username: "${username}"`);
 
         // 1. Check if user exists in MongoDB
-        const user = await User.findOne({ username });
+        let user = await User.findOne({ username });
+        
+        // AUTO-SEED FALLBACK: If dinol doesn't exist, create him right now!
+        if (!user && username === 'dinol' && password === 'password123') {
+            console.log(`[LOGIN AUTO-SEED] Creating test user 'dinol' on the fly...`);
+            user = new User({
+                username: "dinol",
+                password: "password123",
+                role: "user"
+            });
+            await user.save();
+        }
+
         if (!user) {
+            console.log(`[LOGIN FAILED] User "${username}" not found in database.`);
             return res.status(401).json({ message: "Invalid username or password" });
         }
 
         // 2. Check password (using plain text for now, match with seed data)
         if (user.password !== password) {
+            console.log(`[LOGIN FAILED] Password mismatch for user "${username}".`);
             return res.status(401).json({ message: "Invalid username or password" });
         }
 
@@ -74,6 +89,8 @@ app.post('/api/login', async (req, res) => {
             { expiresIn: '1h' }
         );
 
+        console.log(`[LOGIN SUCCESS] User "${username}" successfully authenticated.`);
+
         // 4. Success!
         res.status(200).json({ 
             message: "Login successful", 
@@ -82,7 +99,7 @@ app.post('/api/login', async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Login Error:", error);
+        console.error("[LOGIN ERROR] Exception occurred:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
 });
