@@ -195,10 +195,35 @@ class MapManager {
             iconAnchor: [9, 9]
         });
 
+        // Gate icon — orange diamond shape
+        this.gateIcon = L.divIcon({
+            className: "",
+            html: `<div style="
+                width: 0; height: 0;
+                border-left: 9px solid transparent;
+                border-right: 9px solid transparent;
+                border-bottom: 16px solid #e8430c;
+                filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+                position: relative;">
+                <div style="
+                    width: 0; height: 0;
+                    border-left: 7px solid transparent;
+                    border-right: 7px solid transparent;
+                    border-bottom: 12px solid #811e59;
+                    position: absolute; top: 4px; left: -7px;">
+                </div>
+            </div>`,
+            iconSize:   [18, 16],
+            iconAnchor: [9, 8]
+        });
+
+        const gateIds = ["21", "22", "23"];
+
         this.graph.nodes.forEach(node => {
             if (node.id.toString().startsWith("road_node_")) return;
 
-            const marker = L.marker([node.lat, node.lng], { icon: this.blueIcon })
+            const icon = gateIds.includes(node.id) ? this.gateIcon : this.blueIcon;
+            const marker = L.marker([node.lat, node.lng], { icon })
                 .addTo(this.map)
                 .bindPopup(this._buildPopup(node));
             node.marker = marker;
