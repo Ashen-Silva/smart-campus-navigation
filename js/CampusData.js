@@ -184,6 +184,7 @@ window.campusPlaces = [
   { id: "road_node_156", name: "", aliases: [], lat: 6.7994992, lng: 79.8994086, info: "" },
   { id: "road_node_157", name: "", aliases: [], lat: 6.7996377, lng: 79.8994065, info: "" },
   { id: "road_node_158", name: "", aliases: [], lat: 6.7998998, lng: 79.8994267, info: "" },
+  { id: "road_node_159", name: "", aliases: [], lat: 6.7965900, lng: 79.900341, info: "" }
 ];
 
 
@@ -264,6 +265,10 @@ window.campusPaths = [
   [
     "road_node_18",
     "road_node_19"
+  ],
+  [
+    "road_node_19",
+    "road_node_159"
   ],
   [
     "road_node_14",
@@ -874,10 +879,6 @@ window.campusPaths = [
     "road_node_152"
   ],
   [
-    "9",
-    "road_node_19"
-  ],
-  [
     "10",
     "road_node_137"
   ],
@@ -932,7 +933,12 @@ window.campusPaths = [
   [
     "23", 
     "road_node_46"
-  ]
-
+  ],
+  [ "2", "road_node_159" ],
+  [ "7", "road_node_159" ],
+  [ "8", "road_node_159" ],
+  [ "9", "road_node_159" ],
+  [ "10", "road_node_159"],
+  [ "20", "road_node_159" ]
 ];
 
