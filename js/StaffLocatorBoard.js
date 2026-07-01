@@ -14,7 +14,7 @@ class StaffLocatorBoard {
                 headers['Authorization'] = `Bearer ${token}`;
             }
             
-            const response = await fetch('http://localhost:3000/api/staff', { headers });
+            const response = await fetch('http://localhost:5000/api/staff', { headers });
             
             if (!response.ok) {
                 throw new Error("Failed to fetch staff data");
