@@ -3,6 +3,7 @@ class StaffLocatorBoard {
         this.listElement = document.getElementById('staff-list');
         // 1. Call the real database fetch function instead of the mock one
         this.fetchRealData(); 
+        this.setupUpdateForm();
     }
 
     async fetchRealData() {
@@ -32,9 +33,88 @@ class StaffLocatorBoard {
         }
     }
 
+    setupUpdateForm() {
+        this.updateSection = document.getElementById('staff-update-section');
+        this.updateForm = document.getElementById('staff-update-form');
+        this.staffSelect = document.getElementById('staff-select');
+        this.staffStatus = document.getElementById('staff-status');
+        this.staffLocation = document.getElementById('staff-location');
+        this.updateMsg = document.getElementById('staff-update-msg');
+
+        if (this.updateForm) {
+            this.updateForm.addEventListener('submit', (e) => this.handleUpdateSubmit(e));
+        }
+
+        window.addEventListener('appReady', () => {
+            if (this.updateSection) {
+                if (typeof LoginManager !== 'undefined' && !LoginManager.isGuest()) {
+                    this.updateSection.classList.remove('hidden');
+                } else {
+                    this.updateSection.classList.add('hidden');
+                }
+            }
+        });
+    }
+
+    async handleUpdateSubmit(e) {
+        e.preventDefault();
+        
+        const staffId = this.staffSelect.value;
+        const status = this.staffStatus.value;
+        const location = this.staffLocation.value;
+
+        if (!staffId || !status || !location) {
+            this.updateMsg.textContent = "Please fill in all fields.";
+            this.updateMsg.style.color = "red";
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/staff/${staffId}/location`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ currentStatus: status, location: location })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                this.updateMsg.textContent = "Successfully updated details.";
+                this.updateMsg.style.color = "green";
+                this.updateForm.reset();
+                this.fetchRealData(); // Refresh board
+            } else {
+                this.updateMsg.textContent = data.error || data.message || "Failed to update details.";
+                this.updateMsg.style.color = "red";
+            }
+        } catch (error) {
+            console.error("Error updating staff:", error);
+            this.updateMsg.textContent = "Network error. Could not update.";
+            this.updateMsg.style.color = "red";
+        }
+    }
+
     renderBoard() {
         if (!this.listElement) return;
         this.listElement.innerHTML = ''; 
+
+        if (this.staffSelect) {
+            this.staffSelect.innerHTML = '<option value="">-- Select Lecturer --</option>';
+            const targetLecturers = ["Dr. Chandana Gamage", "Dr. Sandreka Wickramanayake", "Dr. Buddika Karunarathne"];
+            this.staffData.forEach(staff => {
+                if (targetLecturers.includes(staff.name)) {
+                    const option = document.createElement('option');
+                    // Use _id if available, otherwise use name as a fallback
+                    option.value = staff._id || staff.name; 
+                    option.textContent = staff.name;
+                    this.staffSelect.appendChild(option);
+                }
+            });
+        }
         
         this.staffData.forEach(staff => {
             // Create initials dynamically from the name (e.g., "Dr. N.S. Dias" -> "ND")
