@@ -179,6 +179,30 @@
 
         <section id="tab-staff" class="tab-content hidden">
             <h2 class="section-title">Academic Staff</h2>
+            
+            <div id="staff-update-section" class="card hidden" style="background:#f4f7f6; border-left:4px solid #185FA5; margin-bottom: 15px;">
+                <h3 style="margin-bottom: 10px; color: #185FA5;">Update Staff Details</h3>
+                <form id="staff-update-form" style="display: flex; flex-direction: column; gap: 10px;">
+                    <select id="staff-select" required style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">-- Select Lecturer --</option>
+                    </select>
+                    
+                    <select id="staff-status" required style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">-- Select Availability --</option>
+                        <option value="InOffice">In Office</option>
+                        <option value="InLecture">In Lecture</option>
+                        <option value="InTransit">In Transit</option>
+                        <option value="UnknownStatus">Unknown Status</option>
+                        <option value="PrivacyMode_DoNotDisturb">Do Not Disturb</option>
+                    </select>
+                    
+                    <input type="text" id="staff-location" placeholder="Enter Location" required style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    
+                    <button type="submit" class="primary-btn" style="align-self: flex-start;">Update Details</button>
+                    <p id="staff-update-msg" style="margin-top: 5px; font-size: 13px;"></p>
+                </form>
+            </div>
+
             <div class="card">
                 <div id="staff-list">Loading staff...</div>
             </div>
