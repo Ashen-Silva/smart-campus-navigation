@@ -1,20 +1,21 @@
-const User = require('./models/user');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt'); // Added for checking hashed passwords
 const authMiddleware = require('./middleware/auth');
 
 require('dotenv').config();
 
-// Import your Map model so the server can use it
+// Import Models
+const User = require('./models/user');
 const MapGraph = require('./models/Map'); 
-
-// Import your Academic Staff model so the server can use it
 const AcademicStaff = require('./models/Staff');
 
-//import staff routes
+// Import Routes
 const staffRoutes = require('./routes/staffRoutes');
+const authRoutes = require('./routes/authRoutes'); // ADDED: Import the new auth file
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -25,33 +26,27 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error('❌ Database connection error:', err));
 
 // ==========================================
-// 2. YOUR NEW API ROUTE
+// API ROUTES
 // ==========================================
+
+// Auth Routes (Sign Up)
+app.use('/api/auth', authRoutes); // ADDED: Mount the sign up routes
+
+// Staff Routes
+// FIXED: Removed global authMiddleware. It is handled per-route inside staffRoutes.js
+app.use('/api/staff', staffRoutes); 
+
+// Map Route
 app.get('/api/map', async (req, res) => {
     try {
-        // Go to Atlas, find all map data, and wait for the response
         const campusMap = await MapGraph.find(); 
-        
-        // Send the data back as JSON
         res.status(200).json(campusMap); 
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch map data" });
     }
 });
-// ==========================================
 
-
-
-//staff routes (Protected)
-app.use('/api/staff', authMiddleware, staffRoutes);
-
-// 3. Start the Server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    
-});
-
+// Login Route
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -62,14 +57,18 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ message: "Invalid username or password" });
         }
 
-        // 2. Check password (using plain text for now, match with seed data)
-        if (user.password !== password) {
+        // 2. Check password
+        // Since older seed data is plain text and new signups use bcrypt, we check both
+        const isMatch = await bcrypt.compare(password, user.password);
+        const isPlainTextMatch = (user.password === password);
+
+        if (!isMatch && !isPlainTextMatch) {
             return res.status(401).json({ message: "Invalid username or password" });
         }
 
-        // 3. Generate JWT Token
+        // 3. Generate JWT Token (Make sure the payload keys match what auth.js expects)
         const token = jwt.sign(
-            { id: user._id, role: user.role, username: user.username },
+            { userId: user._id, role: user.role, username: user.username },
             process.env.JWT_SECRET || 'super_secret_key',
             { expiresIn: '1h' }
         );
@@ -85,4 +84,10 @@ app.post('/api/login', async (req, res) => {
         console.error("Login Error:", error);
         res.status(500).json({ message: "Internal Server Error" });
     }
+});
+
+// 3. Start the Server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
