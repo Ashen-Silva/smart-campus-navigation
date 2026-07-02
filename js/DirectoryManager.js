@@ -666,6 +666,9 @@ class DirectoryManager {
             // Fly map to the building
             mapManager.map.setView([node.lat, node.lng], 19, { animate: true });
 
+            // Automatically trigger route calculation if starting location is set
+            mapManager.calculateAndDrawRoute();
+
         }, 200);
 
         console.log(`[Directory] Navigate → ${buildingName} (nodeId: "${nodeId}")`);

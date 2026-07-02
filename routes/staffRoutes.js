@@ -1,10 +1,39 @@
-
 // routes/staffRoutes.js
 // Each route calls the exact methods defined in models/Staff.js
+// Supports complete in-memory mock persistence when database is not connected.
 
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const AcademicStaff = require('../models/Staff');
+
+// In-memory mock database for offline mode
+let mockStaff = [
+    { id: "mock-1", name: "Dr. Sandamal", department: "CSE", currentStatus: "InOffice", location: "Department of Computer Science and Engineering - Room 201", confidenceScore: 5, privacyMode: false },
+    { id: "mock-2", name: "Dr. Ranmali", department: "Electrical", currentStatus: "InLecture", location: "Electrical Department - Lecture Hall 1", confidenceScore: 3, privacyMode: false },
+    { id: "mock-3", name: "Dr. Ashen Silva", department: "CSE", currentStatus: "InTransit", location: "Department of Computer Science and Engineering Hall 1", confidenceScore: 8, privacyMode: false }
+];
+
+// Helper to format mock profile
+function getMockPublicProfile(person) {
+    if (person.privacyMode) {
+        return {
+            id: person.id,
+            name: person.name,
+            department: person.department,
+            currentStatus: "PrivacyMode_DoNotDisturb",
+            location: "Hidden",
+        };
+    }
+    return {
+        id: person.id,
+        name: person.name,
+        department: person.department,
+        currentStatus: person.currentStatus,
+        location: person.location,
+        confidenceScore: person.confidenceScore,
+    };
+}
 
 // ============================================================
 // ROUTE 1 — GET /api/staff
@@ -13,13 +42,13 @@ const AcademicStaff = require('../models/Staff');
 // ============================================================
 router.get('/', async (req, res) => {
     try {
+        if (mongoose.connection.readyState !== 1) {
+            const profiles = mockStaff.map(getMockPublicProfile);
+            return res.status(200).json(profiles);
+        }
+
         const allStaff = await AcademicStaff.find();
-
-        // getPublicProfile() returns:
-        // - If privacyMode ON  → { name, department, currentStatus: "PrivacyMode_DoNotDisturb", location: "Hidden" }
-        // - If privacyMode OFF → { name, department, currentStatus, location, confidenceScore }
         const profiles = allStaff.map(person => person.getPublicProfile());
-
         res.status(200).json(profiles);
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch staff list' });
@@ -33,12 +62,18 @@ router.get('/', async (req, res) => {
 // ============================================================
 router.get('/:id', async (req, res) => {
     try {
-        const person = await AcademicStaff.findById(req.params.id);
+        if (mongoose.connection.readyState !== 1) {
+            const person = mockStaff.find(p => p.id === req.params.id);
+            if (!person) {
+                return res.status(404).json({ error: 'Staff member not found' });
+            }
+            return res.status(200).json(getMockPublicProfile(person));
+        }
 
+        const person = await AcademicStaff.findById(req.params.id);
         if (!person) {
             return res.status(404).json({ error: 'Staff member not found' });
         }
-
         res.status(200).json(person.getPublicProfile());
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch staff member' });
@@ -49,16 +84,10 @@ router.get('/:id', async (req, res) => {
 // ROUTE 3 — PUT /api/staff/:id/location
 // Calls: updateLocation(location, status) — METHOD 1 in Staff.js
 // Body:  { location: "Room 201", currentStatus: "InOffice" }
-//
-// What updateLocation() does internally:
-//   - If privacyMode is true  → returns { success: false } → we send 403
-//   - If privacyMode is false → updates location, status, confidenceScore +1
 // ============================================================
 router.put('/:id/location', async (req, res) => {
     try {
         const { location, currentStatus } = req.body;
-
-        // Validate the status value matches Staff.js enum exactly
         const allowedStatuses = [
             'UnknownStatus',
             'InOffice',
@@ -79,6 +108,24 @@ router.put('/:id/location', async (req, res) => {
             });
         }
 
+        if (mongoose.connection.readyState !== 1) {
+            const person = mockStaff.find(p => p.id === req.params.id);
+            if (!person) {
+                return res.status(404).json({ error: 'Staff member not found' });
+            }
+            if (person.privacyMode) {
+                return res.status(403).json({ error: `${person.name} has privacy mode enabled` });
+            }
+            person.location = location;
+            person.currentStatus = currentStatus;
+            person.confidenceScore += 1;
+            return res.status(200).json({
+                success: true,
+                message: `${person.name}'s location updated successfully`,
+                staff: getMockPublicProfile(person)
+            });
+        }
+
         const person = await AcademicStaff.findById(req.params.id);
         if (!person) {
             return res.status(404).json({ error: 'Staff member not found' });
@@ -88,7 +135,6 @@ router.put('/:id/location', async (req, res) => {
         const result = person.updateLocation(location, currentStatus);
 
         if (!result.success) {
-            // updateLocation() returned false because privacyMode is ON
             return res.status(403).json({ error: result.message });
         }
 
@@ -107,15 +153,24 @@ router.put('/:id/location', async (req, res) => {
 // ============================================================
 // ROUTE 4 — PUT /api/staff/:id/privacy/enable
 // Calls: enablePrivacy() — METHOD 2 in Staff.js
-//
-// What enablePrivacy() does internally:
-//   - Sets privacyMode = true
-//   - Sets currentStatus = "PrivacyMode_DoNotDisturb"
-//   - Sets location = "Unknown"
-//   - Sets confidenceScore = 0
 // ============================================================
 router.put('/:id/privacy/enable', async (req, res) => {
     try {
+        if (mongoose.connection.readyState !== 1) {
+            const person = mockStaff.find(p => p.id === req.params.id);
+            if (!person) {
+                return res.status(404).json({ error: 'Staff member not found' });
+            }
+            person.privacyMode = true;
+            person.currentStatus = "PrivacyMode_DoNotDisturb";
+            person.location = "Unknown";
+            person.confidenceScore = 0;
+            return res.status(200).json({
+                success: true,
+                message: `${person.name} is now in Privacy Mode - Do Not Disturb`
+            });
+        }
+
         const person = await AcademicStaff.findById(req.params.id);
         if (!person) {
             return res.status(404).json({ error: 'Staff member not found' });
@@ -127,7 +182,7 @@ router.put('/:id/privacy/enable', async (req, res) => {
         await person.save();
         res.status(200).json({
             success: true,
-            message: result.message  // "Dr. X is now in Privacy Mode - Do Not Disturb"
+            message: result.message
         });
 
     } catch (err) {
@@ -138,14 +193,23 @@ router.put('/:id/privacy/enable', async (req, res) => {
 // ============================================================
 // ROUTE 5 — PUT /api/staff/:id/privacy/disable
 // Calls: disablePrivacy() — METHOD 3 in Staff.js
-//
-// What disablePrivacy() does internally:
-//   - Sets privacyMode = false
-//   - Sets currentStatus = "UnknownStatus"
-//   - Sets location = "Unknown"
 // ============================================================
 router.put('/:id/privacy/disable', async (req, res) => {
     try {
+        if (mongoose.connection.readyState !== 1) {
+            const person = mockStaff.find(p => p.id === req.params.id);
+            if (!person) {
+                return res.status(404).json({ error: 'Staff member not found' });
+            }
+            person.privacyMode = false;
+            person.currentStatus = "UnknownStatus";
+            person.location = "Unknown";
+            return res.status(200).json({
+                success: true,
+                message: `${person.name} is now visible again`
+            });
+        }
+
         const person = await AcademicStaff.findById(req.params.id);
         if (!person) {
             return res.status(404).json({ error: 'Staff member not found' });
@@ -157,7 +221,7 @@ router.put('/:id/privacy/disable', async (req, res) => {
         await person.save();
         res.status(200).json({
             success: true,
-            message: result.message  // "Dr. X is now visible again"
+            message: result.message
         });
 
     } catch (err) {
@@ -168,19 +232,23 @@ router.put('/:id/privacy/disable', async (req, res) => {
 // ============================================================
 // ROUTE 6 — POST /api/staff/reset
 // Calls: systemReset() on ALL staff — METHOD 4 in Staff.js
-// Run this at end of day (18:00) to clear all staff statuses
-//
-// What systemReset() does internally:
-//   - Sets currentStatus = "UnknownStatus"
-//   - Sets location = "Unknown"
-//   - Sets privacyMode = false
-//   - Sets confidenceScore = 0
 // ============================================================
 router.post('/reset', async (req, res) => {
     try {
-        const allStaff = await AcademicStaff.find();
+        if (mongoose.connection.readyState !== 1) {
+            mockStaff.forEach(person => {
+                person.currentStatus = "UnknownStatus";
+                person.location = "Unknown";
+                person.privacyMode = false;
+                person.confidenceScore = 0;
+            });
+            return res.status(200).json({
+                success: true,
+                message: `All ${mockStaff.length} staff statuses have been reset for the day`
+            });
+        }
 
-        // Call METHOD 4 from Staff.js — systemReset() on every person
+        const allStaff = await AcademicStaff.find();
         for (const person of allStaff) {
             person.systemReset();
             await person.save();

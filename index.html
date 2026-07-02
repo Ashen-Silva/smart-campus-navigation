@@ -6,6 +6,9 @@
 <title>MemoryLeak - Smart Campus Navigation</title>
 
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 
 <!-- Leaflet CSS and JS for map rendering -->
@@ -311,6 +314,163 @@ Loading staff...
 </section>
 
 </main>
+
+<aside class="insights-sidebar">
+  <div class="insights-header">
+    <h3>Live Campus Insights</h3>
+  </div>
+
+  <div class="insights-card">
+    <div class="insights-card-header">
+      <svg class="insights-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      <h4>Campus Status</h4>
+    </div>
+    <div class="status-list">
+      <div class="status-item">
+        <span class="status-name">Library</span>
+        <span class="status-badge status-open">Open</span>
+      </div>
+      <div class="status-item">
+        <span class="status-name">Cafeteria</span>
+        <span class="status-badge status-busy">Busy</span>
+      </div>
+      <div class="occupancy-section">
+        <div class="occupancy-header">
+          <span>Real-time occupancy</span>
+          <span>72%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 72%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insights-card weather-widget">
+    <div class="insights-card-header">
+      <svg class="insights-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      <h4>Weather</h4>
+    </div>
+    <div class="weather-content">
+      <div class="weather-main">
+        <span class="temp-text">28°C</span>
+        <span class="weather-icon-cloud">⛅</span>
+      </div>
+      <span class="weather-label">Partly Cloudy</span>
+    </div>
+  </div>
+
+  <div class="insights-card alerts-widget">
+    <div class="insights-card-header">
+      <svg class="insights-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <h4>Recent Alerts</h4>
+    </div>
+    <div class="alerts-scroll-container">
+      <div class="alert-tile">
+        <span class="alert-indicator"></span>
+        <p class="alert-desc">Engineering Building Elevator Maintenance - Until 4 PM</p>
+      </div>
+      <div class="alert-tile">
+        <span class="alert-indicator"></span>
+        <p class="alert-desc">Library quiet study area closed for exam prep</p>
+      </div>
+      <div class="alert-tile">
+        <span class="alert-indicator"></span>
+        <p class="alert-desc">Shuttle bus running with 10 min delay</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="insights-card quick-links-widget">
+    <div class="insights-card-header">
+      <svg class="insights-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <h4>Quick Links</h4>
+    </div>
+    <div class="quick-links-list">
+      <button class="quick-link-item" id="ql-directory-tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ql-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Campus Directory</span>
+      </button>
+      <button class="quick-link-item" id="ql-report-modal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ql-icon"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+        <span>Report Issue</span>
+      </button>
+      <button class="quick-link-item" id="ql-shuttle-modal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ql-icon"><rect x="5.5" y="2" width="13" height="20" rx="2"/><path d="M9 18h6M12 6h.01M9 10h6"/></svg>
+        <span>Shuttle Bus</span>
+      </button>
+    </div>
+  </div>
+</aside>
+
+</div>
+
+<!-- Shuttle Bus Schedule Modal Overlay -->
+<div id="shuttle-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>🚌 Shuttle Bus Schedule</h3>
+      <button class="modal-close" id="shuttle-close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <table class="shuttle-table">
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Stops</th>
+            <th>Frequency</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Route A (Academic Circle)</strong></td>
+            <td>Faculty of Engineering ➔ Library ➔ ENTC ➔ Sumanadasa</td>
+            <td>Every 15 mins</td>
+          </tr>
+          <tr>
+            <td><strong>Route B (Hostel Express)</strong></td>
+            <td>Main Gate ➔ Hostel Complex ➔ Playground ➔ MPB Building</td>
+            <td>Every 20 mins</td>
+          </tr>
+          <tr>
+            <td><strong>Route C (External Shuttle)</strong></td>
+            <td>Katubedda Junction ➔ University Gate ➔ Civil Dept</td>
+            <td>Every 30 mins</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="modal-note">* Shuttle services are active from 7:00 AM to 8:00 PM on weekdays.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Report Issue Modal Overlay -->
+<div id="report-modal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>🛠️ Report Campus Issue</h3>
+      <button class="modal-close" id="report-close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="report-form">
+        <label for="issue-type" style="color:var(--text-muted); font-size:13px; display:block; margin-bottom:6px;">Issue Type</label>
+        <select id="issue-type" required style="width:100%; padding:10px; background:#1b2438; border:1px solid var(--border-color); border-radius:6px; color:#fff; outline:none; margin-bottom:15px;">
+          <option value="broken-path">Obstruction / Broken Path</option>
+          <option value="lift-down">Elevator Out of Service</option>
+          <option value="map-error">Map/Location Label Error</option>
+          <option value="other">Other Maintenance Request</option>
+        </select>
+
+        <label for="issue-desc" style="color:var(--text-muted); font-size:13px; display:block; margin-bottom:6px;">Description</label>
+        <textarea id="issue-desc" placeholder="Describe the issue in detail..." required style="width:100%; height:100px; padding:10px; background:#1b2438; border:1px solid var(--border-color); border-radius:6px; color:#fff; resize:none; outline:none; font-family:inherit;"></textarea>
+
+        <button type="submit" class="primary-btn" style="margin-top:15px; background:linear-gradient(135deg, var(--uom-bright-blue), #00F5D4); color:#0b132b; font-weight:700; border:none;">Submit Report</button>
+      </form>
+      <div id="report-success" class="hidden" style="color:#00F5D4; text-align:center; padding:15px 0; font-weight:600;">
+        <p>✅ Thank you! Your report has been logged. The campus maintenance team will look into it.</p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Load data first -->
@@ -329,7 +489,7 @@ Loading staff...
 <script src="js/StaffLocatorBoard.js"></script>
 
 <!-- app.js last — boots everything after all classes are loaded -->
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
 //new
      <script>
     if ('serviceWorker' in navigator) {

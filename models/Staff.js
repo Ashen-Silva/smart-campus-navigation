@@ -61,6 +61,7 @@ AcademicStaffSchema.methods.systemReset = function() {
 AcademicStaffSchema.methods.getPublicProfile = function() {
   if (this.privacyMode) {
     return {
+      id: this._id,
       name: this.name,
       department: this.department,
       currentStatus: "PrivacyMode_DoNotDisturb",
@@ -68,6 +69,7 @@ AcademicStaffSchema.methods.getPublicProfile = function() {
     };
   }
   return {
+    id: this._id,
     name: this.name,
     department: this.department,
     currentStatus: this.currentStatus,
