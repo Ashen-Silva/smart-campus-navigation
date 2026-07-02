@@ -1,13 +1,13 @@
-
 // routes/staffRoutes.js
 // Each route calls the exact methods defined in models/Staff.js
 
 const express = require('express');
 const router = express.Router();
 const AcademicStaff = require('../models/Staff');
+const verifyAndCheckRole = require('../middleware/auth'); // ADDED: Middleware import
 
 // ============================================================
-// ROUTE 1 — GET /api/staff
+// ROUTE 1 — GET /api/staff (UNPROTECTED)
 // Calls: getPublicProfile() on every staff member
 // Returns: all staff — hides location if privacyMode is true
 // ============================================================
@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
 });
 
 // ============================================================
-// ROUTE 2 — GET /api/staff/:id
+// ROUTE 2 — GET /api/staff/:id (UNPROTECTED)
 // Calls: getPublicProfile() on one staff member
 // Returns: single staff public profile
 // ============================================================
@@ -46,15 +46,10 @@ router.get('/:id', async (req, res) => {
 });
 
 // ============================================================
-// ROUTE 3 — PUT /api/staff/:id/location
+// ROUTE 3 — PUT /api/staff/:id/location (PROTECTED)
 // Calls: updateLocation(location, status) — METHOD 1 in Staff.js
-// Body:  { location: "Room 201", currentStatus: "InOffice" }
-//
-// What updateLocation() does internally:
-//   - If privacyMode is true  → returns { success: false } → we send 403
-//   - If privacyMode is false → updates location, status, confidenceScore +1
 // ============================================================
-router.put('/:id/location', async (req, res) => {
+router.put('/:id/location', verifyAndCheckRole, async (req, res) => { // ADDED: verifyAndCheckRole
     try {
         const { location, currentStatus } = req.body;
 
@@ -79,7 +74,14 @@ router.put('/:id/location', async (req, res) => {
             });
         }
 
-        const person = await AcademicStaff.findById(req.params.id);
+        const mongoose = require('mongoose');
+        let person;
+        if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+            person = await AcademicStaff.findById(req.params.id);
+        } else {
+            person = await AcademicStaff.findOne({ name: req.params.id });
+        }
+        
         if (!person) {
             return res.status(404).json({ error: 'Staff member not found' });
         }
@@ -105,16 +107,10 @@ router.put('/:id/location', async (req, res) => {
 });
 
 // ============================================================
-// ROUTE 4 — PUT /api/staff/:id/privacy/enable
+// ROUTE 4 — PUT /api/staff/:id/privacy/enable (PROTECTED)
 // Calls: enablePrivacy() — METHOD 2 in Staff.js
-//
-// What enablePrivacy() does internally:
-//   - Sets privacyMode = true
-//   - Sets currentStatus = "PrivacyMode_DoNotDisturb"
-//   - Sets location = "Unknown"
-//   - Sets confidenceScore = 0
 // ============================================================
-router.put('/:id/privacy/enable', async (req, res) => {
+router.put('/:id/privacy/enable', verifyAndCheckRole, async (req, res) => { // ADDED: verifyAndCheckRole
     try {
         const person = await AcademicStaff.findById(req.params.id);
         if (!person) {
@@ -136,15 +132,10 @@ router.put('/:id/privacy/enable', async (req, res) => {
 });
 
 // ============================================================
-// ROUTE 5 — PUT /api/staff/:id/privacy/disable
+// ROUTE 5 — PUT /api/staff/:id/privacy/disable (PROTECTED)
 // Calls: disablePrivacy() — METHOD 3 in Staff.js
-//
-// What disablePrivacy() does internally:
-//   - Sets privacyMode = false
-//   - Sets currentStatus = "UnknownStatus"
-//   - Sets location = "Unknown"
 // ============================================================
-router.put('/:id/privacy/disable', async (req, res) => {
+router.put('/:id/privacy/disable', verifyAndCheckRole, async (req, res) => { // ADDED: verifyAndCheckRole
     try {
         const person = await AcademicStaff.findById(req.params.id);
         if (!person) {
@@ -166,17 +157,10 @@ router.put('/:id/privacy/disable', async (req, res) => {
 });
 
 // ============================================================
-// ROUTE 6 — POST /api/staff/reset
+// ROUTE 6 — POST /api/staff/reset (PROTECTED)
 // Calls: systemReset() on ALL staff — METHOD 4 in Staff.js
-// Run this at end of day (18:00) to clear all staff statuses
-//
-// What systemReset() does internally:
-//   - Sets currentStatus = "UnknownStatus"
-//   - Sets location = "Unknown"
-//   - Sets privacyMode = false
-//   - Sets confidenceScore = 0
 // ============================================================
-router.post('/reset', async (req, res) => {
+router.post('/reset', verifyAndCheckRole, async (req, res) => { // ADDED: verifyAndCheckRole
     try {
         const allStaff = await AcademicStaff.find();
 

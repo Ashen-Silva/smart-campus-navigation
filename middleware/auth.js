@@ -1,23 +1,26 @@
 const jwt = require('jsonwebtoken');
 
-const authMiddleware = (req, res, next) => {
-    // Check if the request has an Authorization header
-    const authHeader = req.headers.authorization;
+const verifyAndCheckRole = (req, res, next) => {
+    const token = req.header('Authorization');
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: "Access Denied: No Token Provided!" });
+    if (!token) {
+        return res.status(401).json({ message: "Access Denied. Please log in." });
     }
-
-    const token = authHeader.split(' ')[1];
 
     try {
         // Verify the token
-        const verified = jwt.verify(token, process.env.JWT_SECRET || 'super_secret_key');
+        const verified = jwt.verify(token.replace('Bearer ', ''), process.env.JWT_SECRET || 'super_secret_key');
         req.user = verified;
-        next(); // Proceed to the next middleware or route handler
+
+        // Block guests from proceeding
+        if (req.user.role === 'guest') {
+            return res.status(403).json({ message: "Guests cannot update staff locations. Please sign up." });
+        }
+
+        next(); // User is verified and not a guest, proceed to the route
     } catch (error) {
-        res.status(401).json({ message: "Invalid Token" });
+        res.status(400).json({ message: "Invalid Token" });
     }
 };
 
-module.exports = authMiddleware;
+module.exports = verifyAndCheckRole;

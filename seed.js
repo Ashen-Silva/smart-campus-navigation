@@ -90,9 +90,9 @@ const seedData = async () => {
 
         // 6. Create Initial Staff Data for the Sumanadasa Building
         const initialStaff = [
-            { name: "Dr. Sandamal", department: "CSE", currentStatus: "InOffice", location: "Department of Computer Science and Engineering - Room 201" },
-            { name: "Dr. Ranmali", department: "Electrical", currentStatus: "InLecture", location: "Electrical Department - Lecture Hall 1" },
-            { name: "Dr. Ashen Silva", department: "CSE", currentStatus: "InLecture", location: "Department of Computer Science and Engineering Hall 1" }
+            { name: "Dr. Chandana Gamage", department: "CSE", currentStatus: "InOffice", location: "Department of Computer Science and Engineering - Room 201" },
+            { name: "Dr. Sandreka Wickramanayake", department: "Electrical", currentStatus: "InLecture", location: "Electrical Department - Lecture Hall 1" },
+            { name: "Dr. Buddika Karunarathne", department: "CSE", currentStatus: "InLecture", location: "Department of Computer Science and Engineering Hall 1" }
         ];
 
         // 7. Save to Atlas

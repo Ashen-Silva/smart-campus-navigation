@@ -45,15 +45,15 @@ class CampusGraph {
     // endId         — id of destination CampusNode
     // accessibleOnly — if true, skips edges where isAccessible = false
     // Returns { path: [ids], totalDistance: metres } or null if no route
-    dijkstra(startId, endId, accessibleOnly = false) {
-        const dist    = new Map(); // shortest known distance to each node
-        const prev    = new Map(); // previous node in shortest path
-        const visited = new Set(); // nodes already processed
 
-        // Set all distances to Infinity at the start
+    
+    dijkstra(startId, endId, accessibleOnly = false) {
+        const dist    = new Map(); 
+        const prev    = new Map(); 
+        const visited = new Set(); 
+
         this.nodes.forEach((_, id) => dist.set(id, Infinity));
 
-        // Distance from start to itself is 0
         dist.set(startId, 0);
 
         const queue = [startId];
